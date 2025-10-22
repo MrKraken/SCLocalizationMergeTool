@@ -18,7 +18,7 @@ $targetStringsPath = Join-Path $scriptDir 'target_strings.ini' # input file
 $globalIniPath = Join-Path $scriptDir 'src\global.ini' # source file from Data.p4k
 $mergedIniPath = Join-Path $scriptDir 'output\merged.ini' # Output file
 
-# Check if files exist first
+# Check if files exist first, make folders for outpuits if we need them
 if (-not (Test-Path $targetStringsPath)) {
     Write-Error "target_strings.ini not found at: $targetStringsPath"
     exit 1
@@ -31,8 +31,19 @@ if (-not (Test-Path $gameInstallPath)) {
     Write-Error "Directory not found: $gameInstallPath"
     exit 1
 }
+$outputDir = Split-Path $mergedIniPath -Parent
+if (-not (Test-Path $outputDir)) {
+    New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+    Write-Host "Created output directory: $outputDir"
+}
 $gameIniPath = Join-Path $gameInstallPath 'data\Localization\english\global.ini' # now we know the install folder is valid we can stitch on the localization path
-
+if ($gameIniWrite) {
+    $gameLocalizationDir = Split-Path $gameIniPath -Parent
+    if (-not (Test-Path $gameLocalizationDir)) {
+        New-Item -ItemType Directory -Path $gameLocalizationDir -Force | Out-Null
+        Write-Host "Created game localization directory: $gameLocalizationDir"
+    }
+}
 # Load target_strings.ini into a hashtable (key -> new value)
 $replacements = @{}
 Get-Content $targetStringsPath | ForEach-Object {
