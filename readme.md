@@ -10,11 +10,8 @@
 - Outputs `merged.ini`
 - Optionally outputs directly to the specified game file. See code comments in `merge-translations.ps1` for details
 
-> [!IMPORTANT]
-> **Made by the Community** - This is an unofficial fan project made by Star Citizen community members and is not affiliated with or endorsed by Cloud Imperium Games/Roberts Space Industries
-
 ## 🗺️ Usage
-1. Find the strings you want to customize in `src/global.ini`
+1. Find the strings you want to customize in `src/global.ini` or `src/vehicles.ini`
 2. Copy the line(s) to `target_strings.ini`
 3. If you already have a `user.cfg` file in `StarCitizen\LIVE` add the line `g_language = english`
     - If not, create one or copy `src\user.example.cfg` and rename it to `user.cfg`
@@ -24,7 +21,7 @@
         2. Change `$gameIniWrite = $false` to `$gameIniWrite = $true`
 5. Right click `merge-translations.ps1` & select *Run in Powershell*
     - If prompted, input `r` then press `enter` to run the tool
-6. You can verify the changes have taken effect by going to your install location → `data\Localization\english\global.ini` & searching for one of your strings
+6. You can verify the changes have taken effect by going to your install location → `data\Localization\english\global.ini` & searching for one of your strings using `CTRL`+`F`
 
 ## 🛠️ General Localization Installation
 - Any translations (localization) files you download should go in your Star Citizen install folder (LIVE, PTU, TECH-PREVIEW etc.) in the following structure:
@@ -41,8 +38,11 @@ StarCitizen/
     - Otherwise just make one or rename `user.example.cfg` → `user.cfg` & put it in your SC directory as above
 
 ## 🤔 Is this... legit?
+> [!IMPORTANT]
+> **Made by the Community** - This is an unofficial Star Citizen fan project, not affiliated with the Cloud Imperium group of companies. All content in this repository not authored by its host or users are property of their respective owners.
 - The ability to customise your localisation using the extracted global.ini file is intended/authorised by CIG to support community made translations until it is officially integrated
     - *[Star Citizen: Community Localization Update](https://robertsspaceindustries.com/spectrum/community/SC/forum/1/thread/star-citizen-community-localization-update) 2023-10-11*
 - Considered as third-party contributions, use at your own discretion
 - [RSI Terms of Service](https://robertsspaceindustries.com/en/tos)
+- [Translation & Fan Localization Statement](https://support.robertsspaceindustries.com/hc/en-us/articles/360006895793-Star-Citizen-Fankit-and-Fandom-FAQ#h_01JNKSPM7MRSB1WNBW6FGD2H98)
 
