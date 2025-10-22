@@ -2,6 +2,9 @@
 > [!NOTE]
 > Originally based on [ExoAE's ScCompLangPack](https://github.com/ExoAE/ScCompLangPack) idea but rather than another fork, I decided instead to tweak the merge tool to make it more usable. target_strings.ini is provided for example of organising your ASOP
 
+> [!WARNING]
+> Although I have created a tool to eliminate manual process. If you are uneasy in running it, or unrestricting PowerShell, you can still manually adjust your localization file by just searching for the strings `CTRL`+`F` or simply running a find & replace with `CTRL`+`H`
+
 ### 🗒️ Current String Base: `sc-alpha-4.3.2.10452200`
 
 ## 📝 What it Does
@@ -45,4 +48,25 @@ StarCitizen/
 - Considered as third-party contributions, use at your own discretion
 - [RSI Terms of Service](https://robertsspaceindustries.com/en/tos)
 - [Translation & Fan Localization Statement](https://support.robertsspaceindustries.com/hc/en-us/articles/360006895793-Star-Citizen-Fankit-and-Fandom-FAQ#h_01JNKSPM7MRSB1WNBW6FGD2H98)
+
+## ⁉️ Win11 Gave an Error
+
+> [!CAUTION]
+> Certain operating system versions may require you to unrestrict PowerShell execution in order to run the unsigned script. You can either look-up how to self-sign, or unrestrict and do so at your own risk
+> - Changing execution policy is done by running PowerShell as admin
+> - [Microsoft Info on Execution Policies](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.5&viewFallbackFrom=powershell-7.2)
+> - When you are done ensure you then revert to only running signed scripts
+
+Unrestricting:
+```
+Set-ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+Reverting to default:
+```
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+To block scripts:
+```
+Set-ExecutionPolicy Restricted -Scope CurrentUser
+```
 
