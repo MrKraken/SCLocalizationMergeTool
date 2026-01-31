@@ -3,3 +3,10 @@ pack-for-release.ps1
 release.zip
 SCLocalizationMergeTool.zip
 vehicle-extract.ps1
+.codereview/
+
+# Tool-generated
+config.json
+cache/
+tools/
+output/

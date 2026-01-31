@@ -1,33 +1,100 @@
-# Star Citizen String Translation Merger Tool
+# Star Citizen Localization Merge Tool
+
 > [!NOTE]
-> Originally based on [ExoAE's ScCompLangPack](https://github.com/ExoAE/ScCompLangPack) idea but rather than another fork, I decided instead to tweak the merge tool to make it more usable. target_strings.ini is provided for example of organising your ASOP
+> Originally based on [ExoAE's ScCompLangPack](https://github.com/ExoAE/ScCompLangPack). Rebuilt into a modular localization workbench by [MrKraken](https://www.youtube.com/@MrKraken).
+
+Customize how Star Citizen displays item names, UI labels, and other in-game text. The tool merges your custom strings into the game's `global.ini` so you can see component grades, manufacturer info, weapon stats, and whatever else you want at a glance without digging through menus.
 
 > [!WARNING]
-> Although I have created a tool to eliminate manual process. If you are uneasy in running it, or unrestricting PowerShell, you can still manually adjust your localization file by just searching for the strings `CTRL`+`F` or simply running a find & replace with `CTRL`+`H`
+> If you are uneasy running PowerShell scripts, you can still manually adjust your localization file by searching for strings with `CTRL`+`F` or using find & replace with `CTRL`+`H` in your text editor.
 
-### 🗒️ Current String Base: `sc-alpha-4.3.2.10452200`
+## Features
 
-## 📝 What it Does
-- Takes `target_strings.ini` as the input file & `global.ini` as source file from Data.p4k
-- Finds the keys from input, matches them to source and replaces the value
-- Outputs `merged.ini`
-- Optionally outputs directly to the specified game file. See code comments in `merge-translations.ps1` for details
+| Feature | What it does |
+|---------|-------------|
+| **Merge** | Applies your custom strings from `target_strings.ini` onto `global.ini`, outputs `merged.ini`, and optionally writes directly to your game folder |
+| **Browse** | Browse `global.ini` keys by category (vehicles, UI, hints, etc.) and add them to your target file |
+| **Diff** | Compare cached `global.ini` versions to see what changed between patches, highlighting conflicts with your customizations |
+| **Extract** | Pull `global.ini` directly from your game's `Data.p4k` using unp4k (auto-downloaded if needed) |
+| **Settings** | Configure game path, environments (LIVE/PTU/EPTU), language, and preferences |
 
-## 🗺️ Usage
-1. Find the strings you want to customize in `src/global.ini` or `src/vehicles.ini`
-2. Copy the line(s) to `target_strings.ini`
-3. If you already have a `user.cfg` file in `StarCitizen\LIVE` add the line `g_language = english`
-    - If not, create one or copy `src\user.example.cfg` and rename it to `user.cfg`
-4. If you want to write localization straight to game folder
-    - Open `merge-translations.ps1` in notepad (or other text editor)
-        1. Define your folder if not default
-        2. Change `$gameIniWrite = $false` to `$gameIniWrite = $true`
-5. Right click `merge-translations.ps1` & select *Run in Powershell*
-    - If prompted, input `r` then press `enter` to run the tool
-6. You can verify the changes have taken effect by going to your install location → `data\Localization\english\global.ini` & searching for one of your strings using `CTRL`+`F`
+The merge also handles `user.cfg` automatically. If your game folder is missing `user.cfg` or it doesn't have the right `g_language` line, the tool creates or updates it for you.
 
-## 🛠️ General Localization Installation
-- Any translations (localization) files you download should go in your Star Citizen install folder (LIVE, PTU, TECH-PREVIEW etc.) in the following structure:
+## Quick Start
+
+1. Right-click `merge.ps1` and select **Run in PowerShell**
+2. On first run, the setup wizard detects your game path and configures settings
+3. Use the interactive menu to merge, browse, diff, or extract
+
+### Command-Line Usage
+
+```powershell
+# Interactive menu (default)
+.\merge.ps1
+
+# Direct commands
+.\merge.ps1 -Merge                    # Run merge immediately
+.\merge.ps1 -Browse                   # Open category browser
+.\merge.ps1 -Diff                     # Compare cached versions
+.\merge.ps1 -Extract                  # Extract from Data.p4k
+.\merge.ps1 -Settings                 # Edit configuration
+.\merge.ps1 -Merge -Environment PTU   # Merge for PTU
+```
+
+### Backwards Compatibility
+
+`merge-translations.ps1` still works the same as before, running the merge directly.
+
+## Typical Workflow
+
+1. **Extract** (or manually place) `global.ini` into `src/`
+2. **Browse** categories to find strings you want to customize
+3. Edit the values in `target_strings.ini`
+4. **Merge** to generate the output and write to your game folder
+5. After a game patch, **Extract** again and use **Diff** to see what changed
+
+## What `target_strings.ini` Looks Like
+
+Each entry has a comment preserving the original value, followed by your custom label:
+
+```ini
+; @original=FullStop
+item_NameSHLD_GODI_S02_FullStop=FullStop [Gorgon | S2 | Gr.C | Mil]
+
+; @original=Explorer
+item_NameJUMP_TARS_S1_C=Explorer [Tarsus | S1 | Gr.C | Civ]
+```
+
+The `; @original=` comments let the tool track upstream changes. When a patch changes a value you've customized, the **Diff** feature flags it as a conflict.
+
+## File Structure
+
+```
+SCLocalizationMergeTool/
+  merge.ps1                    # Main entry point (interactive menu)
+  merge-translations.ps1       # Backwards compat (runs merge directly)
+  lib/
+    Categories.ps1             # Category definitions
+    Config.ps1                 # Configuration and setup wizard
+    Extract.ps1                # Data.p4k extraction
+    Merge.ps1                  # Merge engine + user.cfg management
+    Diff.ps1                   # Patch diff and conflict detection
+    Browse.ps1                 # Category browser
+  target_strings.ini           # Your custom translations
+  src/
+    global.ini                 # Source strings from Data.p4k
+    vehicles.ini               # Vehicle name reference
+    user.example.cfg           # Example user.cfg
+  config.json                  # Auto-created settings (gitignored)
+  cache/                       # Cached global.ini versions (gitignored)
+  tools/                       # unp4k (gitignored, auto-downloaded)
+  output/                      # Merge output (gitignored)
+```
+
+## General Localization Installation
+
+Any localization files go in your Star Citizen install folder (LIVE, PTU, EPTU, etc.):
+
 ```
 StarCitizen/
 └── LIVE/
@@ -37,22 +104,24 @@ StarCitizen/
             └── english/
                 └── global.ini
 ```
-- If you already have a `user.cfg` file, add the line `g_language = english`
-    - Otherwise just make one or rename `user.example.cfg` → `user.cfg` & put it in your SC directory as above
 
-## 🤔 Is this... legit?
+If you have auto-write enabled, the tool handles this for you. Otherwise, copy `output/merged.ini` to the path above and ensure `user.cfg` contains `g_language = english` (or your configured language).
+
+## Is this... legit?
+
 > [!IMPORTANT]
-> **Made by the Community** - This is an unofficial Star Citizen fan project, not affiliated with the Cloud Imperium group of companies. All content in this repository not authored by its host or users are property of their respective owners.
-- The ability to customise your localisation using the extracted global.ini file is intended/authorised by CIG to support community made translations until it is officially integrated
+> **Made by the Community** — This is an unofficial Star Citizen fan project, not affiliated with the Cloud Imperium group of companies. All content in this repository not authored by its host or users are property of their respective owners.
+
+- Customising your localisation using the extracted `global.ini` is intended and authorised by CIG to support community-made translations until official integration
     - *[Star Citizen: Community Localization Update](https://robertsspaceindustries.com/spectrum/community/SC/forum/1/thread/star-citizen-community-localization-update) 2023-10-11*
 - Considered as third-party contributions, use at your own discretion
 - [RSI Terms of Service](https://robertsspaceindustries.com/en/tos)
 - [Translation & Fan Localization Statement](https://support.robertsspaceindustries.com/hc/en-us/articles/360006895793-Star-Citizen-Fankit-and-Fandom-FAQ#h_01JNKSPM7MRSB1WNBW6FGD2H98)
 
-## ⁉️ Win11 Gave an Error
+## Win11 Gave an Error
 
 > [!CAUTION]
-> Certain operating system versions may require you to unrestrict PowerShell execution in order to run the unsigned script. You can either look-up how to self-sign, or unrestrict and do so at your own risk
+> Certain operating system versions may require you to unrestrict PowerShell execution in order to run the unsigned script. You can either look up how to self-sign, or unrestrict and do so at your own risk.
 > - Changing execution policy is done by running PowerShell as admin
 > - [Microsoft Info on Execution Policies](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.5&viewFallbackFrom=powershell-7.2)
 > - When you are done ensure you then revert to only running signed scripts
@@ -69,4 +138,3 @@ To block scripts:
 ```
 Set-ExecutionPolicy Restricted -Scope CurrentUser
 ```
-
