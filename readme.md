@@ -13,6 +13,7 @@ Customize how Star Citizen displays item names, UI labels, and other in-game tex
 | Feature | What it does |
 |---------|-------------|
 | **Merge** | Applies your custom strings from `target_strings.ini` onto `global.ini`, outputs `merged.ini`, and optionally writes directly to your game folder |
+| **Patch Update** | One-stop workflow: extracts latest `global.ini` from `Data.p4k`, checks version, diffs old vs new, backs up old source, swaps in the new one, and offers to re-merge |
 | **Browse** | Browse `global.ini` keys by category (vehicles, UI, hints, etc.) and add them to your target file |
 | **Diff** | Compare cached `global.ini` versions to see what changed between patches, highlighting conflicts with your customizations |
 | **Extract** | Pull `global.ini` directly from your game's `Data.p4k` using unp4k (auto-downloaded if needed) |
@@ -22,18 +23,24 @@ The merge also handles `user.cfg` automatically. If your game folder is missing 
 
 ## Quick Start
 
-1. Right-click `merge.ps1` and select **Run in PowerShell**
-2. On first run, the setup wizard detects your game path and configures settings
-3. Use the interactive menu to merge, browse, diff, or extract
+1. Clone or download this repo
+2. Right-click `merge.ps1` and select **Run in PowerShell**
+3. Done — the tool auto-detects your game, extracts the latest strings, and merges your customizations
+
+On first run the tool finds your Star Citizen installation automatically (checks the RSI Launcher log, default paths, and scans all drives). It defaults to the LIVE environment with auto-write enabled so the merged file goes straight into your game folder.
 
 ### Command-Line Usage
 
 ```powershell
-# Interactive menu (default)
+# One-command auto workflow (default)
 .\merge.ps1
 
+# Interactive menu (for power users)
+.\merge.ps1 -Menu
+
 # Direct commands
-.\merge.ps1 -Merge                    # Run merge immediately
+.\merge.ps1 -Merge                    # Run merge only
+.\merge.ps1 -Update                   # Interactive patch update workflow
 .\merge.ps1 -Browse                   # Open category browser
 .\merge.ps1 -Diff                     # Compare cached versions
 .\merge.ps1 -Extract                  # Extract from Data.p4k
@@ -51,7 +58,7 @@ The merge also handles `user.cfg` automatically. If your game folder is missing 
 2. **Browse** categories to find strings you want to customize
 3. Edit the values in `target_strings.ini`
 4. **Merge** to generate the output and write to your game folder
-5. After a game patch, **Extract** again and use **Diff** to see what changed
+5. After a game patch, run **Patch Update** — it extracts the new `global.ini`, shows what changed (including conflicts with your customizations), backs up the old version, and offers to re-merge
 
 ## What `target_strings.ini` Looks Like
 
@@ -71,7 +78,7 @@ The `; @original=` comments let the tool track upstream changes. When a patch ch
 
 ```
 SCLocalizationMergeTool/
-  merge.ps1                    # Main entry point (interactive menu)
+  merge.ps1                    # Main entry point (auto workflow by default)
   merge-translations.ps1       # Backwards compat (runs merge directly)
   lib/
     Categories.ps1             # Category definitions

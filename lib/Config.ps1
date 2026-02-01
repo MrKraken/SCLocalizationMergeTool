@@ -50,13 +50,15 @@ function Find-GameInstallPath {
         Attempts to auto-detect the Star Citizen install path.
     .DESCRIPTION
         Search order:
-        1. RSI Launcher log file
-        2. Default install path
+        1. RSI Launcher log file (installDir / libraryFolder)
+        2. Default C:\Program Files path
+        3. Scan all fixed drive roots for Roberts Space Industries\StarCitizen
+        4. Common install patterns per drive ({drive}:\Games\StarCitizen, etc.)
     .OUTPUTS
         The detected path, or $null if not found.
     #>
 
-    # Try RSI Launcher log
+    # 1. Try RSI Launcher log
     $logPath = Join-Path $env:APPDATA 'rsilauncher\logs\log.log'
     if (Test-Path $logPath) {
         try {
@@ -81,13 +83,84 @@ function Find-GameInstallPath {
         }
     }
 
-    # Try default path
+    # 2. Try default path
     $defaultPath = 'C:\Program Files\Roberts Space Industries\StarCitizen'
     if (Test-Path $defaultPath) {
         return $defaultPath
     }
 
+    # 3. Scan all fixed drives for Roberts Space Industries\StarCitizen
+    $fixedDrives = @()
+    try {
+        $fixedDrives = [System.IO.DriveInfo]::GetDrives() |
+            Where-Object { $_.DriveType -eq 'Fixed' -and $_.IsReady } |
+            ForEach-Object { $_.RootDirectory.FullName }
+    } catch { }
+
+    foreach ($root in $fixedDrives) {
+        $candidate = Join-Path $root 'Roberts Space Industries\StarCitizen'
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    # 4. Common install patterns per drive
+    foreach ($root in $fixedDrives) {
+        $patterns = @(
+            (Join-Path $root 'Games\StarCitizen'),
+            (Join-Path $root 'Games\Roberts Space Industries\StarCitizen'),
+            (Join-Path $root 'Program Files\Roberts Space Industries\StarCitizen')
+        )
+        foreach ($candidate in $patterns) {
+            if (Test-Path $candidate) {
+                return $candidate
+            }
+        }
+    }
+
     return $null
+}
+
+function Initialize-AutoConfig {
+    <#
+    .SYNOPSIS
+        Silent auto-configuration for the one-command workflow.
+    .DESCRIPTION
+        Detects game path automatically, applies sensible defaults
+        (LIVE, english, autoWrite=true). Only prompts if the game
+        path cannot be found.
+    .OUTPUTS
+        The newly created configuration object.
+    #>
+    $detectedPath = Find-GameInstallPath
+
+    if (-not $detectedPath) {
+        Write-Host ''
+        Write-Host '  Game install path could not be detected.' -ForegroundColor Yellow
+        Write-Host '  Enter your Star Citizen installation path' -ForegroundColor Yellow
+        Write-Host '  (e.g., C:\Program Files\Roberts Space Industries\StarCitizen): ' -NoNewline
+        $detectedPath = Read-Host
+        $detectedPath = $detectedPath.Trim('"', "'", ' ')
+
+        if (-not $detectedPath -or -not (Test-Path $detectedPath)) {
+            Write-Warning "Path not found: $detectedPath"
+            Write-Host '  Run .\merge.ps1 -Settings to configure manually.' -ForegroundColor Yellow
+            return $null
+        }
+    }
+
+    $config = [PSCustomObject]@{
+        gameInstallPath  = $detectedPath
+        environments     = @('LIVE')
+        language         = 'english'
+        unp4kPath        = $null
+        lastBuildVersion = $null
+        autoWrite        = $true
+        createdAt        = (Get-Date -Format 'o')
+    }
+
+    Save-Config $config
+    return $config
 }
 
 function Initialize-Config {

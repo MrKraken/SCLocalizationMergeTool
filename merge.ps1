@@ -7,10 +7,16 @@
 # Rebuilt into a modular workbench by MrKraken (https://www.youtube.com/@MrKraken)
 ##################
 
-[CmdletBinding(DefaultParameterSetName = 'Interactive')]
+[CmdletBinding(DefaultParameterSetName = 'Auto')]
 param(
+    [Parameter(ParameterSetName = 'Menu')]
+    [switch]$Menu,
+
     [Parameter(ParameterSetName = 'Merge')]
     [switch]$Merge,
+
+    [Parameter(ParameterSetName = 'Update')]
+    [switch]$Update,
 
     [Parameter(ParameterSetName = 'Extract')]
     [switch]$Extract,
@@ -68,10 +74,11 @@ function Show-MainMenu {
         Write-Host '========================================' -ForegroundColor Cyan
         Write-Host ''
         Write-Host '  1. Merge translations'
-        Write-Host '  2. Browse categories'
-        Write-Host '  3. Diff patch versions'
-        Write-Host '  4. Extract from Data.p4k'
-        Write-Host '  5. Settings'
+        Write-Host '  2. Patch update          (extract, diff, backup, swap)'
+        Write-Host '  3. Browse categories'
+        Write-Host '  4. Diff patch versions'
+        Write-Host '  5. Extract from Data.p4k'
+        Write-Host '  6. Settings'
         Write-Host '  Q. Quit'
         Write-Host ''
         Write-Host '  Select: ' -NoNewline
@@ -82,10 +89,11 @@ function Show-MainMenu {
                 $env = if ($Environment) { $Environment } else { Get-DefaultEnvironment }
                 Invoke-Merge -Environment $env
             }
-            '2' { Show-CategoryBrowser }
-            '3' { Show-DiffMenu }
-            '4' { Show-ExtractMenu }
-            '5' { Show-Settings }
+            '2' { Show-UpdateMenu }
+            '3' { Show-CategoryBrowser }
+            '4' { Show-DiffMenu }
+            '5' { Show-ExtractMenu }
+            '6' { Show-Settings }
             'Q' {
                 Write-Host 'Goodbye!' -ForegroundColor Cyan
                 return
@@ -112,9 +120,14 @@ function Get-DefaultEnvironment {
 }
 
 # Parameter dispatch
-if ($Merge) {
+if ($Menu) {
+    Show-MainMenu
+} elseif ($Merge) {
     $env = if ($Environment) { $Environment } else { Get-DefaultEnvironment }
     Invoke-Merge -Environment $env
+} elseif ($Update) {
+    $env = if ($Environment) { $Environment } else { $null }
+    Invoke-Update -Environment $env
 } elseif ($Extract) {
     Show-ExtractMenu
 } elseif ($Diff) {
@@ -124,6 +137,7 @@ if ($Merge) {
 } elseif ($Settings) {
     Show-Settings
 } else {
-    # Interactive mode
-    Show-MainMenu
+    # Default: auto workflow
+    $env = if ($Environment) { $Environment } else { $null }
+    Invoke-Auto -Environment $env
 }
